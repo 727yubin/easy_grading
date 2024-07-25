@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block title %}Grading Page {{ page_number }}{% endblock %}
+
+{% block content %}
+    <h2>Grading Page {{ page_number }}</h2>
+    <div class="row">
+        {% for student, image_path, grade in student_images %}
+            <div class="col-md-6 mb-4">
+                <div class="card">
+                    <img src="{{ url_for('uploaded_file', user_id=student, filename=image_path.split('/')[-1]) }}" class="card-img-top grading-image" alt="Page {{ page_number }} of student {{ student }}">
+                    <div class="card-body">
+                        <input type="hidden" class="form-control student-id" value="{{ student }}">
+                        <input type="hidden" class="form-control page-number" value="{{ page_number }}">
+                        <div class="form-group">
+                            <label for="grade_{{ student }}">Grade for {{ student }}</label>
+                            <input type="text" class="form-control grade-input" id="grade_{{ student }}" name="grade" value="{{ grade }}">
+                        </div>
+                        <button class="btn btn-primary save-grade" data-student-id="{{ student }}" data-page-number="{{ page_number }}">Save Grade</button>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+    <script>
+        $(document).ready(function() {
+            $(".save-grade").click(function() {
+                var button = $(this);
+                var studentId = button.data("student-id");
+                var pageNumber = button.data("page-number");
+                var grade = button.closest(".card-body").find(".grade-input").val();
+
+                $.ajax({
+                    type: "POST",
+                    url: "{{ url_for('save_grade') }}",
+                    data: {
+                        student_id: studentId,
+                        page_number: pageNumber,
+                        grade: grade
+                    },
+                    success: function(response) {
+                        button.removeClass('btn-error').addClass('btn-success').text('Saved');
+                    },
+                    error: function(xhr, status, error) {
+                        button.removeClass('btn-success').addClass('btn-error').text('Error');
+                    }
+                });
+            });
+
+            $(".grade-input").on('keypress', function(e) {
+                if (e.which == 13) {  // Enter key pressed
+                    e.preventDefault();
+                    $(this).closest(".card-body").find(".save-grade").click();
+                }
+            });
+        });
+    </script>
+{% endblock %}

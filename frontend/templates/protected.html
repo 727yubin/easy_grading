@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block title %}Protected Page{% endblock %}
+
+{% block content %}
+    <h1>Welcome, {{ current_user.id }}!</h1>
+    <p>You have successfully logged in.</p>
+    <ul>
+        {% if current_user.id == 'TA_CS230' %}
+            <li><a href="{{ url_for('grading') }}">Grading</a></li>
+        {% else %}
+            <li><a href="{{ url_for('midterm') }}">View Exam Scores</a></li>
+        {% endif %}
+    </ul>
+    <a href="{{ url_for('logout') }}">Logout</a>
+{% endblock %}

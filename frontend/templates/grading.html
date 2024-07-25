@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block title %}Grading{% endblock %}
+
+{% block content %}
+    <h2>Grading</h2>
+    {% for page in range(1, num_pages + 1) %}
+        <div class="row">
+            <div class="col">
+                <a href="{{ url_for('grading_page', page_number=page) }}">Page {{ page }}</a>
+            </div>
+        </div>
+    {% endfor %}
+{% endblock %}
