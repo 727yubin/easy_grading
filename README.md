@@ -10,7 +10,14 @@
 4. Scan the images into `answer_sheet_scans/raw`. 
 5. `cd answer_sheet_scans; python sort_scans.py raw/`.
 
-6. Now we can start the server. `waitress-serve app:app`. The site should be intuitive enough to use. 
+6. Now we can start the server. 
+
+`docker build . -t <name>`
+`docker run -v ./:/easy_grading -p 8080:8080 -it yblee/easy_grading` 
+
+Then in the docker container, run `waitress-serve app:app`. 
+
+The site should be intuitive enough to use. 
 Advice: In the user credentials CSV, remove the credentials for the students.
 7. Once grading is over, open the server to the students, and they should be able to log in with their credentials, and see their grades.
 

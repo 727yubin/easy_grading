@@ -24,12 +24,6 @@ RUN apk update && \
     gcc \
     musl-dev
 
-# Clone the repository
-RUN git clone https://github.com/727yubin/easy_grading.git
-
-# Change working directory
-WORKDIR /easy_grading
-
 # Install Python dependencies
 RUN pip3 install --no-cache-dir --break-system-packages\
     Flask \
@@ -46,9 +40,4 @@ RUN pip3 install --no-cache-dir --break-system-packages\
     reportlab \
     waitress
 
-# Expose the port
-EXPOSE 8080
-
-# Run the application with Waitress
-CMD ["waitress-serve", "--port=8080", "app:app"]
 
