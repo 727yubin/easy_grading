@@ -38,6 +38,7 @@ RUN pip3 install --no-cache-dir --break-system-packages\
     werkzeug \
     numpy \
     reportlab \
-    waitress
+    waitress \
+    filelock
 
 

@@ -5,6 +5,7 @@ import os
 import json
 import re
 from flask_cors import CORS
+from filelock import FileLock
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your_secret_key'
@@ -20,13 +21,11 @@ CORS(app)
 def load_user_data(csv_file):
     try:
         df = pd.read_csv(csv_file)
-        print(f"CSV content:\n{df}")
         users = {}
         for index, row in df.iterrows():
             user_id = str(row['username']).strip()
             password = str(row['password']).strip()
             users[user_id] = password
-        print(f"Loaded users: {users}")
         return users
     except Exception as e:
         print(f"Error loading user data: {e}")
@@ -50,7 +49,6 @@ def login():
         username = request.form['username']
         password = request.form['password']
         print(f"Attempting login with username: {username} and password: {password}")
-        print(f"Expected password for {username}: {users.get(username)}")
         if username in users and users[username] == password:
             user = User(username)
             login_user(user)
@@ -136,30 +134,34 @@ def grading_page(page_number):
     
     return render_template('grading_page.html', page_number=page_number, student_images=student_images)
 
-
 @app.route('/save_grade', methods=['POST'])
 @login_required
 def save_grade():
     if current_user.id != 'TA_CS230':
         abort(403)
+
     student_id = request.form['student_id']
     page_number = request.form['page_number']
     grade = request.form['grade']
-    
-    grades_file = os.path.join(os.getcwd(), 'grades.json')
-    if os.path.exists(grades_file):
-        with open(grades_file, 'r') as f:
-            grades = json.load(f)
-    else:
-        grades = {}
 
-    if student_id not in grades:
-        grades[student_id] = {}
-    grades[student_id][page_number] = grade
-    
-    with open(grades_file, 'w') as f:
-        json.dump(grades, f)
-    
+    grades_file = os.path.join(os.getcwd(), 'grades.json')
+    lock_file = grades_file + '.lock'
+
+    # Lock the file to prevent concurrent writes
+    with FileLock(lock_file):
+        if os.path.exists(grades_file):
+            with open(grades_file, 'r') as f:
+                grades = json.load(f)
+        else:
+            grades = {}
+
+        if student_id not in grades:
+            grades[student_id] = {}
+        grades[student_id][page_number] = grade
+
+        with open(grades_file, 'w') as f:
+            json.dump(grades, f, indent=4)
+
     return jsonify({'message': f'Grade saved for student {student_id}, page {page_number}.'})
 
 @app.route('/logout')
