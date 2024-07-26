@@ -47,16 +47,16 @@ def generate_printable_document(csv_file, num_pages):
             
             # Draw QR code on PDF with a box around it
             qr_x = width - 30*mm
-            qr_y = height - 50*mm
+            qr_y = height - 30*mm
             qr_size = 20 * mm
             c.drawImage(qr_img_path, qr_x, qr_y, width=qr_size, height=qr_size)
             c.rect(qr_x, qr_y, qr_size, qr_size)  # Box around the QR code
             
             # Center the "DO NOT TAMPER WITH QR" text above the QR code
             c.setFont("Helvetica", 8)
-            tamper_text = "DO NOT TAMPER WITH QR"
+            tamper_text = "DO NOT TAMPER"
             text_width = c.stringWidth(tamper_text, "Helvetica", 8)
-            c.drawString(qr_x + (qr_size - text_width) / 2, qr_y - 10, tamper_text)
+            c.drawString(qr_x + (qr_size - text_width) / 2, qr_y + 60, tamper_text)
             
             # Add header text (name, ID, page number) in bold
             header_text = f"Name: {student_name}    ID: {student_id}    Page: {page_number}/{num_pages}"
