@@ -3,11 +3,12 @@ from flask_login import LoginManager, UserMixin, login_user, login_required, log
 import pandas as pd
 import os
 import json
+import re
 from flask_cors import CORS
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your_secret_key'
-NUM_PAGES = 13  # Configurable number of pages
+NUM_PAGES = 3  # Configurable number of pages
 
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -72,12 +73,12 @@ def protected():
 @login_required
 def midterm():
     user_id = current_user.id
-    user_folder = os.path.join(os.path.dirname(os.getcwd()), 'answer_sheet_scans', user_id)
+    user_folder = os.path.join(os.getcwd(), 'answer_sheet_scans', user_id)
     if not os.path.exists(user_folder):
         flash(f"No folder found for user {user_id}.", 'danger')
         return redirect(url_for('protected'))
 
-    grades_file = os.path.join(os.path.dirname(os.getcwd()), 'grades.json')
+    grades_file = os.path.join(os.getcwd(), 'grades.json')
     if os.path.exists(grades_file):
         with open(grades_file, 'r') as f:
             grades = json.load(f)
@@ -86,7 +87,7 @@ def midterm():
 
     images = []
     total_score = 0
-    for filename in os.listdir(user_folder):
+    for filename in sorted(os.listdir(user_folder), key=lambda x: int(x.split('.')[0])):
         if filename.lower().endswith(('.png', '.jpg', '.jpeg')):
             page_number = filename.split('.')[0]
             score = grades.get(user_id, {}).get(page_number, 'N/A')
@@ -102,7 +103,7 @@ def uploaded_file(user_id, filename):
     if user_id != current_user.id and current_user.id != 'TA_CS230':
         abort(403)  # Forbidden access
 
-    return send_from_directory(os.path.join(os.path.dirname(os.getcwd()), 'answer_sheet_scans', user_id), filename)
+    return send_from_directory(os.path.join(os.getcwd(), 'answer_sheet_scans', user_id), filename)
 
 @app.route('/final')
 @login_required
@@ -122,16 +123,19 @@ def grading_page(page_number):
     if current_user.id != 'TA_CS230':
         abort(403)
 
-    grades_file = os.path.join(os.path.dirname(os.getcwd()), 'grades.json')
+    grades_file = os.path.join(os.getcwd(), 'grades.json')
     if os.path.exists(grades_file):
         with open(grades_file, 'r') as f:
             grades = json.load(f)
     else:
         grades = {}
 
-    students = [d for d in os.listdir(os.path.join(os.path.dirname(os.getcwd()), 'answer_sheet_scans')) if os.path.isdir(os.path.join(os.path.dirname(os.getcwd()), 'answer_sheet_scans', d))]
-    student_images = [(student, os.path.join('answer_sheet_scans', student, f'{page_number}.png'), grades.get(student, {}).get(str(page_number), '')) for student in students]
+    scans_dir = os.path.join(os.getcwd(), 'answer_sheet_scans')
+    students = [d for d in os.listdir(scans_dir) if os.path.isdir(os.path.join(scans_dir, d)) and re.fullmatch(r'\d+', d)]
+    student_images = [(student, os.path.join(scans_dir, student, f'{page_number}.png'), grades.get(student, {}).get(str(page_number), '')) for student in students]
+    
     return render_template('grading_page.html', page_number=page_number, student_images=student_images)
+
 
 @app.route('/save_grade', methods=['POST'])
 @login_required
@@ -142,7 +146,7 @@ def save_grade():
     page_number = request.form['page_number']
     grade = request.form['grade']
     
-    grades_file = os.path.join(os.path.dirname(os.getcwd()), 'grades.json')
+    grades_file = os.path.join(os.getcwd(), 'grades.json')
     if os.path.exists(grades_file):
         with open(grades_file, 'r') as f:
             grades = json.load(f)
@@ -167,3 +171,4 @@ def logout():
 
 if __name__ == '__main__':
     app.run(debug=True)
+
