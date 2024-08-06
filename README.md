@@ -8,7 +8,7 @@
 
 3. When exam time comes, `python generate_answer_sheets.py example_student_list.csv 13`. The number is the number of pages that you wish to print.
 4. Scan the images into `answer_sheet_scans/raw`. 
-5. `cd answer_sheet_scans; python sort_scans.py raw/`.
+5. `cd answer_sheet_scans; python sort_scans.py raw --max_workers=12`. You can specify a different number for `max_workers`.
 
 6. Now we can start the server. 
 
